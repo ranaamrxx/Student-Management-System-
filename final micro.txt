@@ -1,0 +1,364 @@
+
+#include <string.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <ctype.h>
+
+#define MAX_STUDENTS 20
+
+struct Student {
+    char name[20];
+    int id;
+    char gender;
+    int academic_year;
+    float gpa;
+};
+
+
+struct Student students[MAX_STUDENTS];
+
+int num_students = 0;
+
+bool isValidName(const char *input) {
+    int wordCount = 0;
+    bool inWord = false;
+    
+    // Iterate through each character of the input string
+    for (int i = 0; input[i] != '\0'; i++) {
+        // If the current character is not a space and we're not already in a word, mark that we're in a word
+        if (!isspace(input[i]) && !inWord) {
+            inWord = true;
+            wordCount++;
+        }
+        // If the current character is a space and we're already in a word, mark that we're not in a word
+        else if (isspace(input[i]) && inWord) {
+            inWord = false;
+        }
+    }
+
+    // Return true if there are exactly two words
+    return wordCount == 2;
+}
+// Function to check if a student ID is already in use
+bool isIdUnique(int id) {
+    for (int i = 0; i < num_students; i++) {
+        if (students[i].id == id) {
+            return false; // ID already exists
+        }
+    }
+    return true; // ID is unique
+}
+
+void clearInputBuffer() {
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF);
+}
+
+
+void addStudent() {
+    char name[100];
+    int id;
+    char gender;
+    int academic_year;
+    float gpa;
+
+    // Prompt user to enter student data
+    printf("Enter student data:\n");
+    // Full Name (First Last)
+    do{
+        printf("Full Name (First Last): ");
+        fgets(name, sizeof(name), stdin);
+        
+        // Remove newline character from input
+        size_t len = strlen(name);
+        if (name[len - 1] == '\n')
+            name[len - 1] = '\0';
+            
+        // Check if input is valid
+        if (isValidName(name)) {
+            break;
+        } else {
+            printf("Invalid name , please enter only the first and last name.\n");
+        }
+    }while(1);
+    
+    // Student ID (7-digit number)
+    do {
+        printf("Student ID (7-digit number): ");
+        scanf("%d", &id);
+
+        if (id < 1000000 || id > 9999999 || !isIdUnique(id)) {
+            printf("Invalid student ID. Please enter a unique 7-digit number.\n");
+        } else {
+            break; // Exit the loop if input is valid
+        }
+    } while (1);
+
+    // Gender (M/F)
+    do {
+        printf("Gender (M/F): ");
+        scanf(" %c", &gender);
+
+        if (gender != 'M' && gender != 'F') {
+            printf("Invalid gender. Please enter 'M' for Male or 'F' for Female.\n");
+        } else {
+            break; // Exit the loop if input is valid
+        }
+    } while (1);
+
+    // Academic Year (1-5)
+    do {
+        printf("Academic Year (1-5): ");
+        scanf("%d", &academic_year);
+
+        if (academic_year < 1 || academic_year > 5) {
+            printf("Invalid academic year. Please enter a value between 1 and 5.\n");
+        } else {
+            break; // Exit the loop if input is valid
+        }
+    } while (1);
+
+    // GPA (0.0-4.0)
+    do {
+        printf("GPA (0.0-4.0): ");
+        scanf("%f", &gpa);
+
+        if (gpa < 0.0 || gpa > 4.0) {
+            printf("Invalid GPA. Please enter a positive floating-point number between 0.0 and 4.0.\n");
+        } else {
+            break; // Exit the loop if input is valid
+        }
+    } while (1);
+
+    // Create a new Student object and add it to the array
+    struct Student new_student;
+    strcpy(new_student.name, name);
+    new_student.id = id;
+    new_student.gender = gender;
+    new_student.academic_year = academic_year;
+    new_student.gpa = gpa;
+
+    if (num_students < MAX_STUDENTS) {
+        students[num_students++] = new_student;
+        printf("Student added successfully.\n");
+    } else {
+        printf("Cannot add more students. Maximum limit reached.\n");
+    }
+}
+
+
+
+void printStudent(struct Student student) {
+    printf("Name: %s\n", student.name);
+    printf("ID: %d\n", student.id);
+    printf("Gender: %c\n", student.gender);
+    printf("Academic Year: %d\n", student.academic_year);
+    printf("GPA: %.2f\n", student.gpa);
+}
+
+void retrieveStudentData() {
+    int option;
+    printf("Choose an option:\n");
+    printf("1. Search by name\n");
+    printf("2. Search by ID\n");
+    printf("Option: ");
+    scanf("%d", &option);
+    clearInputBuffer(); // Clear input buffer
+
+    switch (option) {
+        case 1: {
+            char name[50];
+            printf("Enter the name of the student: ");
+            fgets(name, 50, stdin);
+            name[strcspn(name, "\n")] = '\0'; // Remove trailing newline
+
+            bool found = false;
+
+            // Search for the student by name
+            for (int i = 0; i < num_students; i++) {
+                if (strcmp(students[i].name, name) == 0) {
+                    // Student found, print their data
+                    found = true;
+                    printStudent(students[i]);
+                    printf("Operation Successful: Student found.\n");
+                    break;
+                }
+            }
+
+            // If student not found, print appropriate message
+            if (!found) {
+                printf("Student not found.\n");
+            }
+            break;
+        }
+        case 2: {
+            int id;
+            printf("Enter the ID of the student: ");
+            scanf("%d", &id);
+            clearInputBuffer(); // Clear input buffer
+
+            bool found = false;
+
+            // Validate the entered ID
+            if (id < 1000000 || id > 9999999) {
+                printf("Invalid ID. Please enter a unique 7-digit number.\n");
+                return;
+            }
+
+            // Search for the student by ID
+            for (int i = 0; i < num_students; i++) {
+                if (students[i].id == id) {
+                    // Student found, print their data
+                    found = true;
+                    printStudent(students[i]);
+                    printf("Operation Successful: Student found.\n");
+                    break;
+                }
+            }
+
+            // If student not found, print appropriate message
+            if (!found) {
+                printf("Student not found.\n");
+            }
+            break;
+        }
+        default:
+            printf("Invalid option.\n");
+    }
+}
+
+
+
+void updateStudentData() {
+    int id;
+    printf("Enter the ID of the student: ");
+    scanf("%d", &id);
+    bool found = false;
+
+    // Validate the entered ID
+    if (id < 1000000 || id > 9999999) {
+        printf("Invalid ID. Please enter a unique 7-digit number.\n");
+        return;
+    }
+
+    // Search for the student by ID
+    for (int i = 0; i < num_students; i++) {
+        if (students[i].id == id) {
+            // Student found, provide options for updating data
+            found = true;
+            int option;
+            printf("Choose an option:\n");
+            printf("1. Update the Academic Year\n");
+            printf("2. Update the GPA\n");
+            printf("Option: ");
+            scanf("%d", &option);
+
+            switch (option) {
+                case 1: {
+                    int new_year;
+                    printf("Enter the new Academic Year: ");
+                    scanf("%d", &new_year);
+                    if (new_year < 1 || new_year > 5) {
+                        printf("Invalid academic year. Please enter a value between 1 and 5.\n");
+                    } else {
+                        students[i].academic_year = new_year;
+                        printf("Operation Successful: Academic Year updated.\n");
+                    }
+                    break;
+                }
+                case 2: {
+                    float new_gpa;
+                    printf("Enter the new GPA: ");
+                    scanf("%f", &new_gpa);
+                    if (new_gpa < 0.0 || new_gpa > 4.0) {
+                        printf("Invalid GPA. Please enter a positive floating-point number between 0.0 and 4.0.\n");
+                    } else {
+                        students[i].gpa = new_gpa;
+                        printf("Operation Successful: GPA updated.\n");
+                    }
+                    break;
+                }
+                default:
+                    printf("Invalid option.\n");
+            }
+            break;
+        }
+    }
+
+    // If student not found, print appropriate message
+    if (!found) {
+        printf("Student not found.\n");
+    }
+}
+
+void removeStudentById(int id) {
+    bool found = false;
+    
+    // Validate the entered ID
+    if (id < 1000000 || id > 9999999) {
+        printf("Invalid ID. Please enter a unique 7-digit number.\n");
+        return;
+    }
+
+    // Search for the student with the entered ID
+    for (int i = 0; i < num_students; i++) {
+        if (students[i].id == id) {
+            // Student found, remove them from the system
+            found = true;
+            num_students--;
+            printf("Operation Successful: Student with ID %d removed from the system.\n", id);
+            break;
+        }
+    }
+
+    // If student not found, print appropriate message
+    if (!found) {
+        printf("ID not found: No student with ID %d exists in the system.\n", id);
+    }
+}
+
+
+int main() {
+
+  int choice;
+    do {
+        // Display menu
+        printf("\nStudent Management System Menu:\n");
+        printf("1. Add Student\n");
+        printf("2. Remove Student\n");
+        printf("3. Retrieve Student's Data\n");
+        printf("4. Update Student's Data\n");
+        printf("5. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+        
+        getchar();// Consume the newline character
+
+        // Perform actions based on user choice
+        switch (choice) {
+            case 1:
+                addStudent();
+                break;
+            case 2: {
+                int id_to_remove;
+                printf("Enter the ID of the student you wish to remove: ");
+                scanf("%d", &id_to_remove);
+                removeStudentById(id_to_remove);
+                break;
+            }
+            case 3:
+                retrieveStudentData();
+                break;
+            case 4:
+                updateStudentData();
+                break;
+            case 5:
+                printf("Exiting...\n");
+                break;
+            default:
+                printf("Invalid choice. Please enter a number between 1 and 5.\n");
+        }
+    } while (choice != 5);
+
+    return 0;
+}
